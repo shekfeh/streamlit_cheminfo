@@ -1,0 +1,7 @@
+streamlit_ketcher
+rdkit
+pubchempy
+requests
+subprocess
+tempfile
+os
