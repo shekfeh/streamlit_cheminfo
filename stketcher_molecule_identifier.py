@@ -233,9 +233,9 @@ generate_3d = st.radio("Generate structure", ["2D", "3D"]) == "3D"
 if st.button("Convert Molecule"):
     try:
         input_format = "smi"  # SMILES format as input
-        output_format = st.selectbox("Output format", ["mol", "mol2", "sdf"])
-        add_hydrogen = st.checkbox("Add hydrogen atoms")
-        generate_3d = st.radio("Generate structure", ["2D", "3D"]) == "3D"
+        output_format = st.selectbox("Output format", ["mol", "mol2", "sdf"], key="output_format_selectbox")
+        add_hydrogen = st.checkbox("Add hydrogen atoms", key="add_hydrogen_checkbox")
+        generate_3d = st.radio("Generate structure", ["2D", "3D"], key="generate_structure_radio") == "3D"
         
         converted_molecule = convert_molecule(
             st.session_state['canonical_smiles'],
@@ -257,6 +257,7 @@ if st.button("Convert Molecule"):
         )
     except Exception as e:
         st.error(f"Error converting molecule: {e}")
+
 
 # CAS number input
 st.sidebar.header("Fetch by CAS Number")
