@@ -194,23 +194,28 @@ drawn_structure = st_ketcher(st.session_state['drawn_structure'], key="ketcher_e
 
 # Button to convert drawing to SMILES
 if st.button("Convert Drawing to SMILES"):
-    try:
-        compound = pcp.get_compounds(drawn_structure, 'smiles')
-        if compound:
-            st.session_state['canonical_smiles'] = compound[0].canonical_smiles
-            st.success("Conversion to SMILES successful!")
-        else:
-            raise IndexError
-    except IndexError:
+    drawn_structure = st.session_state['drawn_structure']
+    if drawn_structure:
         try:
-            st.session_state['canonical_smiles'] = convert_to_canonical_smiles(st.session_state['drawn_structure'])
-            if st.session_state['canonical_smiles']:
+            compound = pcp.get_compounds(drawn_structure, 'smiles')
+            if compound:
+                st.session_state['canonical_smiles'] = compound[0].canonical_smiles
                 st.success("Conversion to SMILES successful!")
             else:
                 raise ValueError("Conversion failed.")
-        except ValueError as e:
-            st.session_state['canonical_smiles'] = 'Conversion failed.'
-            st.error(f"Error converting drawing to SMILES: {e}")
+        except pcp.PubChemHTTPError as e:
+            try:
+                st.session_state['canonical_smiles'] = convert_to_canonical_smiles(drawn_structure)
+                if st.session_state['canonical_smiles']:
+                    st.success("Conversion to SMILES successful!")
+                else:
+                    raise ValueError("Conversion failed.")
+            except ValueError as e:
+                st.session_state['canonical_smiles'] = 'Conversion failed.'
+                st.error(f"Error converting drawing to SMILES: {e}")
+    else:
+        st.warning("No drawing available to convert to SMILES.")
+
 
 
 # Display the canonical SMILES after conversion
