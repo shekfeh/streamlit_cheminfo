@@ -1,6 +1,6 @@
 streamlit==1.35.0
 streamlit_ketcher==0.0.1
-rdkit-pypi>=2023.3
+rdkit-pypi>=2022.9.5
 pubchempy>=1.0.4
 requests>=1.2.0
 
