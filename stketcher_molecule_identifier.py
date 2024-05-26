@@ -6,6 +6,8 @@ import subprocess
 import tempfile
 import os
 from rdkit import Chem
+from rdkit.Chem import AllChem, rdDepictor
+from rdkit.Chem import rdMolTransforms as rdMT
 
 # Function to fetch identifiers and properties using PubChemPy and CACTUS NCI service
 def fetch_identifiers_and_properties(smiles):
@@ -29,29 +31,32 @@ def get_cas_from_cactus(smiles):
     else:
         return "Not available"
 
-# Open Babel conversion function
-def convert_molecule(input_mol, input_format, output_format, add_hydrogen, generate_3d):
-    with tempfile.NamedTemporaryFile(delete=False, suffix=f".{input_format}") as temp_input:
-        temp_input.write(input_mol.encode())
-        temp_input.flush()
+# RDKit conversion function
+def convert_molecule(input_smiles, output_format, add_hydrogen, generate_3d):
+    mol = Chem.MolFromSmiles(input_smiles)
+    if mol is None:
+        raise ValueError("Invalid SMILES string")
+    
+    if add_hydrogen:
+        mol = Chem.AddHs(mol)
+    
+    if generate_3d:
+        AllChem.EmbedMolecule(mol, AllChem.ETKDG())
+        AllChem.UFFOptimizeMolecule(mol)
+    else:
+        rdDepictor.Compute2DCoords(mol)
 
-        output_suffix = output_format.lower()
-        output_file = temp_input.name.replace(f".{input_format}", f".{output_suffix}")
-        
-        command = ["obabel", temp_input.name, f"-O{output_file}"]
-
-        if add_hydrogen:
-            command.append("-h")
-        if generate_3d:
-            command.append("--gen3d")
-
-        subprocess.run(command, check=True)
-
-        with open(output_file, "r") as file:
-            output_data = file.read()
-
-        os.remove(output_file)
-        return output_data
+    if output_format == "mol":
+        return Chem.MolToMolBlock(mol)
+    elif output_format == "mol2":
+        return Chem.MolToMol2Block(mol)
+    elif output_format == "sdf":
+        writer = Chem.SDWriter('')
+        writer.write(mol)
+        writer.flush()
+        return writer.getvalue()
+    else:
+        raise ValueError("Unsupported output format")
 
 # Function to fetch compound information by CAS number
 def fetch_by_cas(cas_number):
