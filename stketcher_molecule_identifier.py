@@ -226,7 +226,7 @@ generate_3d = st.radio("Generate structure", ["2D", "3D"]) == "3D"
 
 # Convert and display molecule
 if st.button("Convert Molecule"):
-    converted_molecule = convert_molecule(st.session_state['canonical_smiles'], input_format, output_format, add_hydrogen, generate_3d)
+    converted_molecule = convert_molecule(st.session_state['canonical_smiles'], output_format, add_hydrogen, generate_3d)
     st.markdown(f"Converted molecule ({output_format}):")
     st.code(converted_molecule)
 
