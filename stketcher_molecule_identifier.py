@@ -8,6 +8,7 @@ import os
 from rdkit import Chem
 from rdkit.Chem import AllChem, rdDepictor
 from rdkit.Chem import rdMolTransforms as rdMT
+from io import StringIO
 
 # Function to fetch identifiers and properties using PubChemPy and CACTUS NCI service
 def fetch_identifiers_and_properties(smiles):
@@ -49,14 +50,38 @@ def convert_molecule(input_smiles, output_format, add_hydrogen, generate_3d):
     if output_format == "mol":
         return Chem.MolToMolBlock(mol)
     elif output_format == "mol2":
-        return Chem.MolToMol2Block(mol)
+        return mol_to_mol2_block(mol)
     elif output_format == "sdf":
-        writer = Chem.SDWriter('')
-        writer.write(mol)
-        writer.flush()
-        return writer.getvalue()
+        return mol_to_sdf_block(mol)
     else:
         raise ValueError("Unsupported output format")
+
+def mol_to_mol2_block(mol):
+    # This is a simplified implementation, more sophisticated handling may be required
+    mol2_lines = ["@<TRIPOS>MOLECULE"]
+    mol2_lines.append("Converted by RDKit")
+    mol2_lines.append(f"{mol.GetNumAtoms()} {mol.GetNumBonds()} 0 0 0")
+    mol2_lines.append("SMALL")
+    mol2_lines.append("NO_CHARGES")
+
+    mol2_lines.append("@<TRIPOS>ATOM")
+    for atom in mol.GetAtoms():
+        pos = mol.GetConformer().GetAtomPosition(atom.GetIdx())
+        mol2_lines.append(f"{atom.GetIdx() + 1} {atom.GetSymbol()} {pos.x:.4f} {pos.y:.4f} {pos.z:.4f} {atom.GetSymbol()} 1 LIG1 0.000")
+
+    mol2_lines.append("@<TRIPOS>BOND")
+    for bond in mol.GetBonds():
+        mol2_lines.append(f"{bond.GetIdx() + 1} {bond.GetBeginAtomIdx() + 1} {bond.GetEndAtomIdx() + 1} {bond.GetBondTypeAsDouble()}")
+
+    return "\n".join(mol2_lines)
+
+def mol_to_sdf_block(mol):
+    sio = StringIO()
+    writer = Chem.SDWriter(sio)
+    writer.write(mol)
+    writer.close()
+    sdf_block = sio.getvalue()
+    return sdf_block
 
 # Function to fetch compound information by CAS number
 def fetch_by_cas(cas_number):
