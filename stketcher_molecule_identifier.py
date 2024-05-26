@@ -231,31 +231,17 @@ generate_3d = st.radio("Generate structure", ["2D", "3D"]) == "3D"
 
 # Convert and display molecule
 if st.button("Convert Molecule"):
-    try:
-        input_smiles = st.session_state['canonical_smiles']
-        output_format = st.selectbox("Output format", ["mol", "mol2", "sdf"], key="output_format_selectbox")
-        add_hydrogen = st.checkbox("Add hydrogen atoms", key="add_hydrogen_checkbox")
-        generate_3d = st.radio("Generate structure", ["2D", "3D"], key="generate_structure_radio") == "3D"
-        
-        converted_molecule = convert_molecule(
-            input_smiles,
-            output_format,
-            add_hydrogen,
-            generate_3d
-        )
-        
-        st.markdown(f"Converted molecule ({output_format}):")
-        st.code(converted_molecule)
+    converted_molecule = convert_molecule(st.session_state['canonical_smiles'], input_format, output_format, add_hydrogen, generate_3d)
+    st.markdown(f"Converted molecule ({output_format}):")
+    st.code(converted_molecule)
 
-        # Provide download link for the converted molecule
-        st.download_button(
-            label="Download converted molecule",
-            data=converted_molecule,
-            file_name=f"converted_molecule.{output_format}",
-            mime="chemical/x-mdl-molfile"
-        )
-    except Exception as e:
-        st.error(f"Error converting molecule: {e}")
+    # Provide download link for the converted molecule
+    st.download_button(
+        label="Download converted molecule",
+        data=converted_molecule,
+        file_name=f"converted_molecule.{output_format}",
+        mime="chemical/x-mdl-molfile"
+    )
 
 
 # CAS number input
